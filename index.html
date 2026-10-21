@@ -758,13 +758,16 @@
           <input type="date" id="fechaHasta">
 
           <label>Tipo de propuesta</label>
-          <select id="tipoPropuesta" onchange="cargarSelectorMarcos(); seleccionarMarco();">
+          <select id="tipoPropuesta" onchange="document.getElementById('buscadorMarco').value = ''; ocultarCoincidenciasMarcos(); cargarSelectorMarcos(); seleccionarMarco();">
             <option value="FP">Formación Profesional</option>
             <option value="EPJA">Talleres y Seminarios EPJA · Uso exclusivo EPJA</option>
           </select>
 
           <label>Trayecto / Marco de Referencia</label>
-          <select id="selectorMarco" onchange="seleccionarMarco()"></select>
+          <input type="search" id="buscadorMarco" placeholder="Buscar por nombre, código o norma..." autocomplete="off" aria-label="Buscar trayecto o marco" oninput="cargarSelectorMarcos(); mostrarCoincidenciasMarcos()" onfocus="if(this.value.trim()) mostrarCoincidenciasMarcos()" style="margin-bottom:8px;">
+          <div id="coincidenciasMarcos" style="display:none;max-height:235px;overflow-y:auto;border:1px solid #aab9ca;border-radius:7px;margin:-3px 0 9px;background:white;" role="listbox" aria-label="Resultados de búsqueda"></div>
+          <select id="selectorMarco" onchange="seleccionarMarco(); ocultarCoincidenciasMarcos()"></select>
+          <small id="cantidadMarcos" style="display:block;margin-top:5px;color:#526477;"></small>
 
           <div class="marco-info" id="marcoInfo">
             Seleccioná un marco vigente para cargar automáticamente la carga horaria, o elegí <b>OTROS</b> para ingresar los datos manualmente.
@@ -902,10 +905,49 @@ const MARCOS_VIGENTES = [{"denominacion":"Albañil Marco","norma":"Res. CFE N° 
 // {denominacion, norma, horas, codigo, tipo, nivel, categoria}
 const EPJA_ITEMS = [{"denominacion":"“Aprende a Cortar como un Profesional”","norma":"DISFC-2025-1-E-NEU","horas":30.0,"codigo":"TACP","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Aprendiendo a cultivar hongos ostra”","norma":"DISFC-2025-1-E-NEU","horas":25.0,"codigo":"TACH","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Arte y Té… crea tu bolso matero”","norma":"DISFC-2025-3-E-NEU","horas":30.0,"codigo":"TAT","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Artesano en Tela de Accesorios para El Hogar”","norma":"DISFC-2025-6-E-NEU","horas":120.0,"codigo":"MAEH","tipo":"MR","nivel":"","categoria":"EPJA","_estadoCambio":"nuevo"},{"denominacion":"“Brisas de verano. Confección de bikini”","norma":"DISFC-2025-3-E-NEU","horas":25.0,"codigo":"TBVC","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Buenas Prácticas de Seguridad e Higiene en Estética”,","norma":"DISFC-2025-3-E-NEU","horas":20.0,"codigo":"TEPE","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Ciudadanía Digital”","norma":"DISFC-2025-2-E-NEU","horas":10.0,"codigo":"SCD","tipo":"SEMINARIOS","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Conecta y Crea- Programación”","norma":"DISFC-2025-3-E-NEU","horas":30.0,"codigo":"TCCP","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Conexión Digital”","norma":"DISFC-2025-3-E-NEU","horas":30.0,"codigo":"TCDI","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Conexión y Palabras”","norma":"DISFC-2025-1-E-NEU","horas":30.0,"codigo":"TCYP","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Confección de Pechera escolar Kids”","norma":"DISFC-2025-5-E-NEU","horas":30.0,"codigo":"TPEK","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Confección Íntima con Estilo…tanga y vedetina”,","norma":"DISFC-2025-3-E-NEU","horas":30.0,"codigo":"TCIC","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Confeccionando sueños para tu bebé... la batita”","norma":"DISFC-2025-3-E-NEU","horas":30.0,"codigo":"TCB","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Confeccionista de Amigurumis”","norma":"DISFC-2025-6-E-NEU","horas":120.0,"codigo":"MCA","tipo":"MR","nivel":"","categoria":"EPJA","_estadoCambio":"nuevo"},{"denominacion":"“Corte y Arte”","norma":"DISFC-2025-4-E-NEU","horas":30.0,"codigo":"TCA","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Costurero/a”","norma":"DISFC-2025-6-E-NEU","horas":120.0,"codigo":"MCC","tipo":"MR","nivel":"","categoria":"EPJA","_estadoCambio":"nuevo"},{"denominacion":"“Creación de Documentos Informáticos”","norma":"DISFC-2025-4-E-NEU","horas":30.0,"codigo":"TCDI","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Delicias Veganas”,","norma":"DISFC-2025-1-E-NEU","horas":30.0,"codigo":"TDV","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Diseño, Planificación y Manejo para Huertas Saludables”,","norma":"DISFC-2025-1-E-NEU","horas":30.0,"codigo":"TDPM","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Documentos que Impactan”,","norma":"DISFC-2025-1-E-NEU","horas":30.0,"codigo":"TDQI","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“El ABC del color en el cabello”;","norma":"DISFC-2025-3-E-NEU","horas":30.0,"codigo":"TABC","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“El Arte de Atender”","norma":"DISFC-2025-4-E-NEU","horas":30.0,"codigo":"TEAA","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“El arte de cultivar, plantines saludables, cosechas felices”,","norma":"DISFC-2025-1-E-NEU","horas":25.0,"codigo":"TEAC","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“El Arte de la Distinción… Cuellos y Puños”,","norma":"DISFC-2025-4-E-NEU","horas":25.0,"codigo":"TCYP","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“El arte del Ambo” ... El pantalón”","norma":"DISFC-2025-4-E-NEU","horas":30.0,"codigo":"TAP","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“El arte del Ambo”...La chaqueta”","norma":"DISFC-2025-4-E-NEU","horas":30.0,"codigo":"TAC","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Estilo escolar… confección de cartucheras de tela”","norma":"DISFC-2025-4-E-NEU","horas":30.0,"codigo":"TCFC","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Estilo Infantil…Confección de Remeras”","norma":"DISFC-2025-4-E-NEU","horas":25.0,"codigo":"TEICR","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Fuerza Colectiva”,","norma":"DISFC-2025-3-E-NEU","horas":30.0,"codigo":"TFC","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Habilidades digitales”,","norma":"DISFC-2025-2-E-NEU","horas":10.0,"codigo":"SHD","tipo":"SEMINARIOS","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Inteligencia Artificial aplicado al Diseño visual”,","norma":"DISFC-2025-2-E-NEU","horas":10.0,"codigo":"SDV","tipo":"SEMINARIOS","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Liderazgo”","norma":"DISFC-2025-2-E-NEU","horas":10.0,"codigo":"SLLL","tipo":"SEMINARIOS","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Manos de Madera”","norma":"DISFC-2025-4-E-NEU","horas":30.0,"codigo":"TMM","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Manualidades Navideña con Fieltro”","norma":"DISFC-2025-5-E-NEU","horas":30.0,"codigo":"TMNF","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Operador de Computadoras Personales”","norma":"DISFC-2025-6-E-NEU","horas":120.0,"codigo":"MOCP","tipo":"MR","nivel":"","categoria":"EPJA","_estadoCambio":"nuevo"},{"denominacion":"“Pan Sin Gluten: Sabores y Creatividad”,","norma":"DISFC-2025-1-E-NEU","horas":21.0,"codigo":"TPSG","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Peinados increíbles… para cada ocasión”,","norma":"DISFC-2025-3-E-NEU","horas":30.0,"codigo":"TPIP","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Pincel y Madera”","norma":"DISFC-2025-4-E-NEU","horas":30.0,"codigo":"TPM","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Primeros pasos en el mundo digital”","norma":"DISFC-2025-5-E-NEU","horas":30.0,"codigo":"TMD","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Protección Digital”,","norma":"DISFC-2025-2-E-NEU","horas":6.0,"codigo":"SPD","tipo":"SEMINARIOS","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Reciclador de Indumentaria”","norma":"DISFC-2025-6-E-NEU","horas":120.0,"codigo":"MRI","tipo":"MR","nivel":"","categoria":"EPJA","_estadoCambio":"nuevo"},{"denominacion":"“Sendero de la Cultura”","norma":"DISFC-2025-5-E-NEU","horas":30.0,"codigo":"TSC","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Street Food”- comida callejera”,","norma":"DISFC-2025-1-E-NEU","horas":30.0,"codigo":"TSFC","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Susurros del huso… Hilado de lana natural”","norma":"DISFC-2025-5-E-NEU","horas":25.0,"codigo":"THLN","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Usos y funciones de la maquina y mantenimiento”,","norma":"DISFC-2025-2-E-NEU","horas":10.0,"codigo":"SFMM","tipo":"SEMINARIOS","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"},{"denominacion":"“Viaje al plato”,","norma":"DISFC-2025-1-E-NEU","horas":30.0,"codigo":"TVP","tipo":"TALLER","nivel":"","categoria":"EPJA","_estadoCambio":"sin_cambio"}];
 
+function ocultarCoincidenciasMarcos(){
+  const caja = document.getElementById("coincidenciasMarcos");
+  if(caja) caja.style.display = "none";
+}
+function mostrarCoincidenciasMarcos(){
+  const caja = document.getElementById("coincidenciasMarcos");
+  const buscador = document.getElementById("buscadorMarco");
+  const selector = document.getElementById("selectorMarco");
+  if(!caja || !buscador || !selector) return;
+  caja.replaceChildren();
+  if(!buscador.value.trim()){ ocultarCoincidenciasMarcos(); return; }
+  const opciones = [...selector.options].filter(o => o.value.startsWith("FP:") || o.value.startsWith("EPJA:"));
+  if(!opciones.length){
+    const aviso = document.createElement("div");
+    aviso.textContent = "No se encontraron coincidencias";
+    aviso.style.cssText = "padding:12px;color:#526477";
+    caja.appendChild(aviso);
+  }
+  opciones.forEach(opcion => {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.textContent = opcion.textContent;
+    boton.style.cssText = "display:block;width:100%;text-align:left;background:white;color:#172b43;border:0;border-bottom:1px solid #e6eaf0;padding:10px 12px;cursor:pointer;font:inherit";
+    boton.addEventListener("mouseenter", () => boton.style.background = "#eaf3ff");
+    boton.addEventListener("mouseleave", () => boton.style.background = "white");
+    boton.addEventListener("click", () => {
+      selector.value = opcion.value;
+      seleccionarMarco();
+      buscador.value = opcion.textContent.replace(/^[🟢🟡]\s*(NUEVO|ANTERIOR)\s*·\s*/, "").split(" · ")[0];
+      ocultarCoincidenciasMarcos();
+    });
+    caja.appendChild(boton);
+  });
+  caja.style.display = "block";
+}
+
 function cargarSelectorMarcos(){
   const selector = document.getElementById("selectorMarco");
   const tipoPropuesta = document.getElementById("tipoPropuesta")?.value || "FP";
+  const seleccionAnterior = selector.value;
   selector.innerHTML = "";
+  const normalizar = texto => String(texto ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
+  const consulta = normalizar(document.getElementById("buscadorMarco")?.value.trim() || "");
 
   const inicial = document.createElement("option");
   inicial.value = "";
@@ -915,7 +957,10 @@ function cargarSelectorMarcos(){
   selector.appendChild(inicial);
 
   const fuente = tipoPropuesta === "EPJA" ? EPJA_ITEMS : MARCOS_VIGENTES;
-  fuente.forEach((m, index) => {
+  const ordenados = fuente.map((m, index) => ({m, index}))
+    .filter(({m}) => !consulta || normalizar([m.denominacion, m.codigo, m.norma].join(" ")).includes(consulta))
+    .sort((a, b) => a.m.denominacion.replace(/^[\s“”"'«»‘’]+/, "").localeCompare(b.m.denominacion.replace(/^[\s“”"'«»‘’]+/, ""), "es", {sensitivity:"base", numeric:true}));
+  ordenados.forEach(({m, index}) => {
     const opt = document.createElement("option");
     opt.value = (tipoPropuesta === "EPJA" ? "EPJA:" : "FP:") + index;
     const codigo = m.codigo ? " · " + m.codigo : "";
@@ -928,12 +973,33 @@ function cargarSelectorMarcos(){
     selector.appendChild(opt);
   });
 
+  const contador = document.getElementById("cantidadMarcos");
+  if(contador) contador.textContent = ordenados.length + " de " + fuente.length + " propuestas";
+  if(!ordenados.length){
+    const vacio = document.createElement("option");
+    vacio.value = "";
+    vacio.disabled = true;
+    vacio.textContent = "No se encontraron coincidencias";
+    selector.appendChild(vacio);
+  }
   const otros = document.createElement("option");
   otros.value = tipoPropuesta === "EPJA" ? "OTROS_EPJA" : "OTROS";
   otros.textContent = tipoPropuesta === "EPJA"
     ? "OTROS EPJA - Carga manual"
     : "OTROS - Carga manual";
   selector.appendChild(otros);
+  if([...selector.options].some(opt => opt.value === seleccionAnterior)) selector.value = seleccionAnterior;
+  else if(seleccionAnterior && document.getElementById("buscadorMarco")?.value) {
+    // Mantener el marco elegido mientras se busca otra propuesta.
+    const original = fuente[Number(seleccionAnterior.split(":")[1])];
+    if(original && seleccionAnterior.includes(":")){
+      const vigente = document.createElement("option");
+      vigente.value = seleccionAnterior;
+      vigente.textContent = "✓ Seleccionado: " + original.denominacion;
+      selector.appendChild(vigente);
+      selector.value = seleccionAnterior;
+    }
+  }
 
   let leyenda = document.getElementById("leyendaCambios20260908");
   if(!leyenda){
@@ -1078,6 +1144,7 @@ function numero(id){
 }
 
 function reiniciar(){
+  document.getElementById("buscadorMarco").value = "";
   document.getElementById("fechaDesde").value = DEFAULTS.fechaDesde;
   document.getElementById("fechaHasta").value = DEFAULTS.fechaHasta;
   document.getElementById("horasMR").value = DEFAULTS.horasMR;
